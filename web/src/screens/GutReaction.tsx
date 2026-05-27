@@ -86,7 +86,7 @@ export function GutReaction() {
         </div>
 
         {!done ? (
-          <CountUpRing elapsed={elapsed} total={COUNT_SECONDS} />
+          <CalmPulse elapsed={elapsed} />
         ) : (
           <div style={{ width: "100%", maxWidth: 600, animation: "fadeInUp 420ms ease-out" }}>
             <StanceInput
@@ -165,14 +165,8 @@ function SoftGradient({ phase }: { phase: "thinking" | "settled" }) {
   );
 }
 
-function CountUpRing({ elapsed, total }: { elapsed: number; total: number }) {
-  const size = 132;
-  const stroke = 8;
-  const r = (size - stroke) / 2;
-  const circumference = 2 * Math.PI * r;
-  const progress = elapsed / total;
-  const dash = circumference * progress;
-
+function CalmPulse({ elapsed }: { elapsed: number }) {
+  const size = 240;
   return (
     <div
       style={{
@@ -184,34 +178,39 @@ function CountUpRing({ elapsed, total }: { elapsed: number; total: number }) {
         justifyContent: "center",
       }}
     >
-      <svg width={size} height={size} style={{ transform: "rotate(-90deg)" }}>
-        <circle
-          cx={size / 2}
-          cy={size / 2}
-          r={r}
-          stroke="var(--color-hairline)"
-          strokeWidth={stroke}
-          fill="none"
-        />
-        <circle
-          cx={size / 2}
-          cy={size / 2}
-          r={r}
-          stroke="#2c4373"
-          strokeWidth={stroke}
-          fill="none"
-          strokeDasharray={`${dash} ${circumference - dash}`}
-          strokeLinecap="round"
-          style={{ transition: "stroke-dasharray 250ms linear" }}
-        />
-      </svg>
       <div
+        aria-hidden
         style={{
           position: "absolute",
-          fontSize: 36,
+          inset: 0,
+          borderRadius: "50%",
+          background:
+            "radial-gradient(circle at 38% 32%, rgba(214,224,236,0.85), rgba(230,221,236,0.55) 45%, rgba(232,228,214,0.42) 72%, transparent 82%)",
+          filter: "blur(18px)",
+          animation: "calmPulse 6.5s ease-in-out infinite",
+        }}
+      />
+      <div
+        aria-hidden
+        style={{
+          position: "absolute",
+          inset: 36,
+          borderRadius: "50%",
+          background:
+            "radial-gradient(circle at 55% 45%, rgba(255,255,255,0.85), rgba(214,224,236,0.45) 55%, transparent 80%)",
+          filter: "blur(8px)",
+          animation: "calmPulse 6.5s ease-in-out infinite",
+          animationDelay: "1.4s",
+        }}
+      />
+      <div
+        style={{
+          position: "relative",
+          fontSize: 44,
           fontWeight: "var(--weight-medium)",
           color: "var(--color-inkwell)",
           fontVariantNumeric: "tabular-nums",
+          letterSpacing: "-0.02em",
         }}
       >
         {elapsed}

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { HIGHLIGHT_PALETTE, type PassageHighlight } from "./highlightTypes";
+import { HIGHLIGHT_PALETTE } from "./highlightTypes";
 
 const toolbarBox: React.CSSProperties = {
   position: "fixed",
@@ -23,8 +23,6 @@ export type DraftState = {
   quote: string;
   sectionLabel?: string;
 };
-
-export type InspectState = { id: string; left: number; top: number };
 
 export function NewHighlightToolbar({
   draft,
@@ -144,158 +142,6 @@ export function NewHighlightToolbar({
         >
           Save
         </button>
-      </div>
-    </div>
-  );
-}
-
-export function InspectHighlightToolbar({
-  inspect,
-  highlight,
-  onDismiss,
-  onSave,
-  onDelete,
-}: {
-  inspect: InspectState;
-  highlight: PassageHighlight | undefined;
-  onDismiss: () => void;
-  onSave: (note: string, color?: string) => void;
-  onDelete: () => void;
-}) {
-  const [note, setNote] = useState(highlight?.note ?? "");
-  const [color, setColor] = useState<string>(
-    highlight?.color ?? HIGHLIGHT_PALETTE[0].color
-  );
-  const ref = useRef<HTMLDivElement>(null);
-  const noteRef = useRef<HTMLTextAreaElement>(null);
-
-  useEffect(() => {
-    setNote(highlight?.note ?? "");
-    setColor(highlight?.color ?? HIGHLIGHT_PALETTE[0].color);
-  }, [highlight]);
-
-  useEffect(() => {
-    if (highlight) noteRef.current?.focus();
-  }, [highlight]);
-
-  useEffect(() => {
-    const onDoc = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) onDismiss();
-    };
-    const t = setTimeout(() => document.addEventListener("mousedown", onDoc), 0);
-    return () => {
-      clearTimeout(t);
-      document.removeEventListener("mousedown", onDoc);
-    };
-  }, [onDismiss]);
-
-  if (!highlight) return null;
-
-  return (
-    <div
-      ref={ref}
-      style={{
-        ...toolbarBox,
-        left: inspect.left,
-        top: inspect.top,
-        transform: "translate(-50%, 0)",
-      }}
-    >
-      <div
-        style={{
-          marginBottom: 8,
-          fontWeight: "var(--weight-medium)",
-          color: "var(--color-graphite)",
-        }}
-      >
-        Annotation
-      </div>
-      <div style={{ display: "flex", gap: 6, marginBottom: 10 }}>
-        {HIGHLIGHT_PALETTE.map((p) => (
-          <button
-            key={p.key}
-            type="button"
-            title={p.key}
-            onClick={() => setColor(p.color)}
-            style={{
-              width: 26,
-              height: 26,
-              borderRadius: 6,
-              border:
-                color === p.color
-                  ? `2px solid ${p.border}`
-                  : "2px solid transparent",
-              background: p.color,
-              cursor: "pointer",
-              padding: 0,
-            }}
-          />
-        ))}
-      </div>
-      <textarea
-        ref={noteRef}
-        value={note}
-        onChange={(e) => setNote(e.target.value)}
-        rows={3}
-        style={{
-          width: "100%",
-          boxSizing: "border-box",
-          resize: "vertical",
-          marginBottom: 10,
-          font: "inherit",
-          padding: 8,
-          borderRadius: 6,
-          border: "1px solid var(--color-hairline)",
-          background: "var(--color-parchment)",
-        }}
-      />
-      <div style={{ display: "flex", gap: 8, justifyContent: "space-between" }}>
-        <button
-          type="button"
-          onClick={onDelete}
-          style={{
-            padding: "6px 14px",
-            borderRadius: "var(--radius-pill)",
-            border: "1px solid #e2c1c1",
-            background: "var(--color-paper-white)",
-            color: "#a14444",
-            cursor: "pointer",
-            fontSize: "var(--text-body-sm)",
-          }}
-        >
-          Remove
-        </button>
-        <div style={{ display: "flex", gap: 8 }}>
-          <button
-            type="button"
-            onClick={onDismiss}
-            style={{
-              padding: "6px 14px",
-              borderRadius: "var(--radius-pill)",
-              border: "1px solid var(--color-hairline)",
-              background: "var(--color-paper-white)",
-              cursor: "pointer",
-              fontSize: "var(--text-body-sm)",
-            }}
-          >
-            Close
-          </button>
-          <button
-            type="button"
-            onClick={() => onSave(note, color)}
-            style={{
-              padding: "6px 14px",
-              borderRadius: "var(--radius-pill)",
-              border: "1px solid var(--color-graphite)",
-              background: "var(--color-graphite)",
-              color: "var(--color-paper-white)",
-              cursor: "pointer",
-              fontSize: "var(--text-body-sm)",
-            }}
-          >
-            Update
-          </button>
-        </div>
       </div>
     </div>
   );

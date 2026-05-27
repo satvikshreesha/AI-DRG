@@ -1,4 +1,4 @@
-import { useMemo, type ReactNode } from "react";
+import { type ReactNode } from "react";
 import { buildRenderSegments, flattenRuns } from "./highlightText";
 import type { TextRun, PassageHighlight } from "./highlightTypes";
 
@@ -36,10 +36,7 @@ export function HighlightableBlock({
   wrapper = "block",
 }: Props) {
   const full = flattenRuns(runs);
-  const segments = useMemo(
-    () => buildRenderSegments(runs, highlights, blockId),
-    [runs, highlights, blockId]
-  );
+  const segments = buildRenderSegments(runs, highlights, blockId);
 
   const inner = segments.map((seg) => {
     const text = full.slice(seg.start, seg.end);

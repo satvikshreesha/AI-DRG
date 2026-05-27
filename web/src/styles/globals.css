@@ -60,6 +60,19 @@ a {
   }
 }
 
+/* Calmer, slower breathing used for the gut-reaction count-up orb. */
+@keyframes calmPulse {
+  0%,
+  100% {
+    transform: scale(0.96);
+    opacity: 0.85;
+  }
+  50% {
+    transform: scale(1.06);
+    opacity: 1;
+  }
+}
+
 @keyframes fadeInUp {
   from {
     opacity: 0;

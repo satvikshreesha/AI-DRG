@@ -132,6 +132,22 @@ export function EssayWriting() {
               }}
             />
           </div>
+
+          <div
+            style={{
+              marginTop: 16,
+              paddingTop: 12,
+              borderTop: "1px solid var(--color-hairline)",
+              fontSize: "var(--text-caption)",
+              color: "var(--color-faded-stone)",
+              fontStyle: "italic",
+              textAlign: "center",
+              lineHeight: 1.5,
+            }}
+          >
+            AI was used to support critique and feedback during the essay
+            drafting process.
+          </div>
         </div>
       </div>
 
