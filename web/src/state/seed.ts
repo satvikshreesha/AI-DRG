@@ -134,7 +134,7 @@ export function createSeedSession(): SessionState {
     essayDraft: "",
     essayComments: [],
     tabs: {
-      openTabs: ["close-reading"],
+      openTabs: [],
       activeTab: "close-reading",
     },
   };
@@ -147,6 +147,10 @@ export function createSkipToCloseReadingSession(): SessionState {
     ...createSeedSession(),
     gutReactionComplete: true,
     initialStance: DEMO_INITIAL_STANCE,
+    tabs: {
+      openTabs: ["close-reading"],
+      activeTab: "close-reading",
+    },
   };
 }
 

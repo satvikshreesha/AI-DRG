@@ -4,15 +4,15 @@
  */
 :root {
   /* Colors */
-  --color-inkwell: #000000;
+  --color-inkwell: #101010;
   --color-paper-white: #ffffff;
-  --color-parchment: #faf8f5;
-  --color-parchment-elevated: #f4f1ec;
+  --color-parchment: #f5f7fa;
+  --color-parchment-elevated: #eceef4;
   --color-graphite: #27251e;
-  --color-faded-stone: #92918b;
-  --color-dusk-gray: #72706b;
-  --color-hairline: #e8e5df;
-  --color-hairline-soft: #efece6;
+  --color-faded-stone: #8b8c92;
+  --color-dusk-gray: #6b6c72;
+  --color-hairline: #dfe2e8;
+  --color-hairline-soft: #e6e9ef;
 
   /* Accent (used sparingly — selections, connections) */
   --color-accent-teal: #5fb6b8;
@@ -34,7 +34,7 @@
   /* Typography */
   --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system,
     BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  --font-serif: "Source Serif Pro", Georgia, "Times New Roman", serif;
+  --font-serif: "GT Alpina", Georgia, "Times New Roman", serif;
 
   --text-caption: 12px;
   --text-body-sm: 14px;

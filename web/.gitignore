@@ -12,6 +12,12 @@ dist
 dist-ssr
 *.local
 
+# Licensed font binaries (add trial files locally; do not commit)
+public/fonts/gt-alpina/*.otf
+public/fonts/gt-alpina/*.woff
+public/fonts/gt-alpina/*.woff2
+!public/fonts/gt-alpina/.gitkeep
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

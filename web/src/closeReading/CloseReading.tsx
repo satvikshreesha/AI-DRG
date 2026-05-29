@@ -434,7 +434,7 @@ export function CloseReading() {
         style={{
           marginLeft: 220,
           padding: "48px 56px 96px",
-          fontFamily: "Georgia, 'Source Serif Pro', serif",
+          fontFamily: "var(--font-serif)",
           boxSizing: "border-box",
           display: "flex",
           justifyContent: "center",

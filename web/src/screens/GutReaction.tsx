@@ -1,7 +1,26 @@
 import { useEffect, useRef, useState } from "react";
+import { SoftGradientBackground } from "../components/SoftGradientBackground";
 import { useSession } from "../state/SessionProvider";
 
+/* ─────────────────────────────────────────────────────────
+ * ANIMATION STORYBOARD (on mount)
+ *
+ *  200ms   prompt, explanation, countdown fade in (600ms)
+ *  600ms   gradient blob 1 fades in (600ms)
+ *  800ms   gradient blob 2 fades in (600ms)
+ * 1000ms   gradient blob 3 fades in (600ms)
+ *
+ * Timing tokens in globals.css — tune independently:
+ *   --gut-content-fade-*  prompt / explanation / countdown
+ *   --gut-blob-fade-*     gradient blobs
+ * ───────────────────────────────────────────────────────── */
+
 const COUNT_SECONDS = 30;
+const CONTENT_MAX_WIDTH_PX = 600;
+const PROMPT_TOP_PX = 160;
+const GAP_AFTER_PROMPT_PX = 48;
+const GAP_BEFORE_COUNTDOWN_PX = 64;
+const GAP_BEFORE_INPUT_PX = 24;
 
 export function GutReaction() {
   const { state, setInitialStance, completeGutReaction } = useSession();
@@ -30,192 +49,142 @@ export function GutReaction() {
   return (
     <div
       style={{
-        minHeight: "100vh",
+        height: "100%",
         position: "relative",
-        background: "var(--color-paper-white)",
+        background: "var(--color-parchment)",
         overflow: "hidden",
       }}
     >
-      <SoftGradient phase={done ? "settled" : "thinking"} />
+      <SoftGradientBackground phase={done ? "settled" : "thinking"} />
 
       <div
         style={{
           position: "relative",
-          maxWidth: 720,
-          margin: "0 auto",
-          padding: "80px 24px 40px",
+          zIndex: 1,
+          height: "100%",
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
-          gap: 36,
-          minHeight: "100vh",
-          justifyContent: "center",
-          zIndex: 1,
+          paddingTop: PROMPT_TOP_PX,
+          paddingBottom: 60,
+          boxSizing: "border-box",
         }}
       >
         <div
           style={{
-            border: "1px solid var(--color-hairline)",
-            borderRadius: "var(--radius-card)",
-            padding: "26px 34px",
-            background: "var(--color-paper-white)",
-            maxWidth: 600,
+            width: "100%",
+            maxWidth: CONTENT_MAX_WIDTH_PX,
+            padding: "0 24px",
+            boxSizing: "border-box",
+          }}
+        >
+        <div
+          className="gut-reaction-content-enter"
+          style={{
+            width: "100%",
+            maxWidth: CONTENT_MAX_WIDTH_PX,
             textAlign: "center",
-            fontSize: 17,
-            lineHeight: 1.6,
+            fontFamily: "var(--font-serif)",
+            fontSize: 20,
+            lineHeight: 1.3,
             color: "var(--color-inkwell)",
-            animation: "fadeIn 600ms ease-out",
           }}
         >
           {state.prompt}
         </div>
 
-        <div
+        <p
+          className="gut-reaction-content-enter"
           style={{
+            width: "100%",
+            maxWidth: CONTENT_MAX_WIDTH_PX,
+            margin: `${GAP_AFTER_PROMPT_PX}px 0 0`,
             color: "var(--color-dusk-gray)",
             fontSize: "var(--text-body-sm)",
+            lineHeight: 1.5,
             textAlign: "center",
-            animation: "fadeIn 600ms ease-out",
-            animationDelay: "200ms",
-            animationFillMode: "backwards",
           }}
         >
           {done
             ? "Respond to the prompt, nothing fancy, just your initial position after thinking."
             : "Take thirty seconds to think about your stance on this prompt."}
+        </p>
+
+        <div
+          style={{
+            width: "100%",
+            maxWidth: CONTENT_MAX_WIDTH_PX,
+            marginTop: done ? GAP_BEFORE_INPUT_PX : GAP_BEFORE_COUNTDOWN_PX,
+            ...(!done
+              ? { display: "flex", justifyContent: "center" }
+              : {}),
+          }}
+        >
+          {!done ? (
+            <CalmPulse elapsed={elapsed} />
+          ) : (
+            <div
+              className="gut-reaction-settle-in"
+              style={{ width: "100%", maxWidth: CONTENT_MAX_WIDTH_PX }}
+            >
+              <StanceInput
+                value={state.initialStance}
+                onChange={setInitialStance}
+                canContinue={canContinue}
+                onContinue={completeGutReaction}
+              />
+            </div>
+          )}
         </div>
-
-        {!done ? (
-          <CalmPulse elapsed={elapsed} />
-        ) : (
-          <div style={{ width: "100%", maxWidth: 600, animation: "fadeInUp 420ms ease-out" }}>
-            <StanceInput
-              value={state.initialStance}
-              onChange={setInitialStance}
-              canContinue={canContinue}
-              onContinue={completeGutReaction}
-            />
-          </div>
-        )}
+        </div>
       </div>
-    </div>
-  );
-}
-
-function SoftGradient({ phase }: { phase: "thinking" | "settled" }) {
-  const intensity = phase === "thinking" ? 0.9 : 0.55;
-  return (
-    <div
-      aria-hidden
-      style={{
-        position: "fixed",
-        inset: 0,
-        pointerEvents: "none",
-        zIndex: 0,
-      }}
-    >
-      <div
-        style={{
-          position: "absolute",
-          width: 600,
-          height: 600,
-          borderRadius: "50%",
-          background:
-            "radial-gradient(circle, rgba(214,224,236,0.7), transparent 65%)",
-          top: "-15%",
-          left: "10%",
-          opacity: intensity,
-          filter: "blur(40px)",
-          animation: "gutPulse 7s ease-in-out infinite",
-        }}
-      />
-      <div
-        style={{
-          position: "absolute",
-          width: 520,
-          height: 520,
-          borderRadius: "50%",
-          background:
-            "radial-gradient(circle, rgba(230,221,236,0.65), transparent 65%)",
-          top: "30%",
-          right: "5%",
-          opacity: intensity,
-          filter: "blur(40px)",
-          animation: "gutPulse 9s ease-in-out infinite",
-          animationDelay: "1.4s",
-        }}
-      />
-      <div
-        style={{
-          position: "absolute",
-          width: 460,
-          height: 460,
-          borderRadius: "50%",
-          background:
-            "radial-gradient(circle, rgba(232,228,214,0.65), transparent 65%)",
-          bottom: "-10%",
-          left: "32%",
-          opacity: intensity,
-          filter: "blur(40px)",
-          animation: "gutPulse 11s ease-in-out infinite",
-          animationDelay: "0.6s",
-        }}
-      />
     </div>
   );
 }
 
 function CalmPulse({ elapsed }: { elapsed: number }) {
-  const size = 240;
+  const tens = Math.floor(elapsed / 10);
+  const ones = elapsed % 10;
+  const label = `${elapsed} seconds`;
+
   return (
     <div
+      className="gut-countdown gut-reaction-content-enter"
+      role="timer"
+      aria-live="polite"
+      aria-atomic="true"
+      aria-label={label}
       style={{
-        position: "relative",
-        width: size,
-        height: size,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
+        fontSize: 96,
+        fontWeight: "var(--weight-regular)",
+        color: "var(--color-dusk-inkwell)",
+        letterSpacing: "-0.02em",
+        width: "100%",
+        maxWidth: CONTENT_MAX_WIDTH_PX,
       }}
     >
-      <div
-        aria-hidden
-        style={{
-          position: "absolute",
-          inset: 0,
-          borderRadius: "50%",
-          background:
-            "radial-gradient(circle at 38% 32%, rgba(214,224,236,0.85), rgba(230,221,236,0.55) 45%, rgba(232,228,214,0.42) 72%, transparent 82%)",
-          filter: "blur(18px)",
-          animation: "calmPulse 6.5s ease-in-out infinite",
-        }}
-      />
-      <div
-        aria-hidden
-        style={{
-          position: "absolute",
-          inset: 36,
-          borderRadius: "50%",
-          background:
-            "radial-gradient(circle at 55% 45%, rgba(255,255,255,0.85), rgba(214,224,236,0.45) 55%, transparent 80%)",
-          filter: "blur(8px)",
-          animation: "calmPulse 6.5s ease-in-out infinite",
-          animationDelay: "1.4s",
-        }}
-      />
-      <div
-        style={{
-          position: "relative",
-          fontSize: 44,
-          fontWeight: "var(--weight-medium)",
-          color: "var(--color-inkwell)",
-          fontVariantNumeric: "tabular-nums",
-          letterSpacing: "-0.02em",
-        }}
-      >
-        {elapsed}
-      </div>
+      <CountdownDigit value={tens} max={3} />
+      <CountdownDigit value={ones} max={9} />
     </div>
+  );
+}
+
+function CountdownDigit({ value, max }: { value: number; max: number }) {
+  const digits = Array.from({ length: max + 1 }, (_, i) => i);
+
+  return (
+    <span className="gut-countdown-digit" aria-hidden>
+      <span
+        className="gut-countdown-digit-track"
+        style={{ transform: `translateY(-${value}em)` }}
+      >
+        {digits.map((digit) => (
+          <span key={digit} className="gut-countdown-digit-cell">
+            {digit}
+          </span>
+        ))}
+      </span>
+    </span>
   );
 }
 

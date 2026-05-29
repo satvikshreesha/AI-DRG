@@ -1,0 +1,64 @@
+/*
+ * GT Alpina (Grilli Type trial / license)
+ * https://www.grillitype.com/typeface/gt-alpina
+ *
+ * Download trial fonts, then place Standard cuts in:
+ *   web/public/fonts/gt-alpina/
+ *
+ * Supported filenames (woff2 preferred; .otf works as fallback):
+ *   GT-Alpina-Standard-Regular.woff2 | .otf
+ *   GT-Alpina-Standard-Regular-Italic.woff2 | .otf
+ *   GT-Alpina-Standard-Medium.woff2 | .otf
+ */
+
+@font-face {
+  font-family: "GT Alpina";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src:
+    local("GT Alpina Standard Regular"),
+    local("GTAlpinaStandard-Regular"),
+    local("GT-Alpina-Standard-Regular"),
+    url("/fonts/gt-alpina/GT-Alpina-Standard-Regular.woff2") format("woff2"),
+    url("/fonts/gt-alpina/GT-Alpina-Standard-Regular.otf") format("opentype");
+}
+
+@font-face {
+  font-family: "GT Alpina";
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src:
+    local("GT Alpina Standard Regular Italic"),
+    local("GTAlpinaStandard-RegularItalic"),
+    local("GT-Alpina-Standard-Regular-Italic"),
+    url("/fonts/gt-alpina/GT-Alpina-Standard-Regular-Italic.woff2") format("woff2"),
+    url("/fonts/gt-alpina/GT-Alpina-Standard-Regular-Italic.otf") format("opentype");
+}
+
+@font-face {
+  font-family: "GT Alpina";
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src:
+    local("GT Alpina Standard Medium"),
+    local("GTAlpinaStandard-Medium"),
+    local("GT-Alpina-Standard-Medium"),
+    url("/fonts/gt-alpina/GT-Alpina-Standard-Medium.woff2") format("woff2"),
+    url("/fonts/gt-alpina/GT-Alpina-Standard-Medium.otf") format("opentype");
+}
+
+@font-face {
+  font-family: "GT Alpina";
+  font-style: italic;
+  font-weight: 500;
+  font-display: swap;
+  src:
+    local("GT Alpina Standard Medium Italic"),
+    local("GTAlpinaStandard-MediumItalic"),
+    local("GT-Alpina-Standard-Medium-Italic"),
+    url("/fonts/gt-alpina/GT-Alpina-Standard-Medium-Italic.woff2") format("woff2"),
+    url("/fonts/gt-alpina/GT-Alpina-Standard-Medium-Italic.otf") format("opentype");
+}

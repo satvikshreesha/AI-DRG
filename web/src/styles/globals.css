@@ -1,3 +1,4 @@
+@import "./fonts-gt-alpina.css";
 @import "./tokens.css";
 
 html,
@@ -47,30 +48,227 @@ a {
   background: var(--color-accent-teal-soft);
 }
 
-/* Subtle utility for the gut-reaction soft gradient */
-@keyframes gutPulse {
-  0%,
-  100% {
-    transform: scale(1);
-    opacity: 0.9;
+/* Gut reaction — content entrance (prompt, explanation, countdown) */
+:root {
+  --gut-content-fade-duration: 600ms;
+  --gut-content-fade-delay: 200ms;
+  --gut-content-fade-ease: ease-out;
+
+  /* Gradient blob entrance — mirrors content timing initially, tunable separately */
+  --gut-blob-fade-duration: 1200ms;
+  --gut-blob-fade-delay: 600ms;
+  --gut-blob-fade-stagger: 600ms;
+  --gut-blob-fade-ease: ease-out;
+  --gut-blob-intro-scale-from: 0.5;
+
+  /* Post-countdown settle (gradient field dim + input) */
+  --gut-settle-duration: 1200ms;
+  --gut-settle-delay: 120ms;
+  --gut-settle-ease: cubic-bezier(0.4, 0, 0.2, 1);
+  --gut-countdown-ticker-duration: 820ms;
+  --gut-countdown-ticker-ease: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.gut-reaction-content-enter {
+  opacity: 0;
+  animation: fadeIn var(--gut-content-fade-duration) var(--gut-content-fade-ease)
+    var(--gut-content-fade-delay) both;
+}
+
+.gut-reaction-settle-in {
+  opacity: 0;
+  animation: gutReactionSettleIn var(--gut-settle-duration) var(--gut-settle-ease)
+    var(--gut-settle-delay) both;
+}
+
+@keyframes gutReactionSettleIn {
+  from {
+    opacity: 0;
   }
-  50% {
-    transform: scale(1.04);
+  to {
     opacity: 1;
   }
 }
 
-/* Calmer, slower breathing used for the gut-reaction count-up orb. */
-@keyframes calmPulse {
-  0%,
-  100% {
-    transform: scale(0.96);
-    opacity: 0.85;
+/* Soft animated gradient background (gut reaction) */
+.soft-gradient-stage {
+  isolation: isolate;
+  background:
+    radial-gradient(
+      circle at 50% 120%,
+      rgba(255, 255, 255, var(--vignette, 0.07)),
+      transparent 42%
+    ),
+    var(--paper, var(--color-paper-white));
+}
+
+.soft-gradient-blob-field {
+  position: absolute;
+  inset: -18vmax;
+  opacity: 1;
+  filter: blur(var(--blur, 13px)) saturate(var(--saturation, 0.91))
+    contrast(var(--contrast, 1.3));
+  transform: translateZ(0);
+  will-change: transform, opacity;
+  transition: opacity var(--gut-settle-duration) var(--gut-settle-ease);
+  transition-delay: var(--gut-settle-delay);
+}
+
+.soft-gradient-stage[data-phase="settled"] .soft-gradient-blob-field {
+  opacity: 0.3;
+}
+
+.soft-gradient-blob-entrance {
+  position: absolute;
+  left: calc(var(--x) * 1%);
+  top: calc(var(--y) * 1%);
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(1);
+  animation: gutBlobEntrance var(--gut-blob-fade-duration) var(--gut-blob-fade-ease)
+    calc(
+      var(--gut-blob-fade-delay) + var(--blob-index, 0) * var(--gut-blob-fade-stagger)
+    )
+    both;
+  will-change: transform, opacity;
+}
+
+.soft-gradient-blob {
+  position: relative;
+  width: calc(var(--size) * 1vmin);
+  height: calc(var(--size) * var(--stretch) * 1vmin);
+  border-radius: 52% 48% 58% 42% / 47% 55% 45% 53%;
+  background: radial-gradient(
+    circle at var(--hot-x) var(--hot-y),
+    var(--hot) 0 10%,
+    var(--color) 28%,
+    var(--wash) 58%,
+    transparent 74%
+  );
+  mix-blend-mode: var(--blob-blend, soft-light);
+  opacity: var(--alpha);
+  will-change: transform, border-radius;
+}
+
+@keyframes gutBlobEntrance {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(var(--gut-blob-intro-scale-from));
   }
-  50% {
-    transform: scale(1.06);
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+.soft-gradient-blob::after {
+  content: "";
+  position: absolute;
+  inset: 8%;
+  border-radius: inherit;
+  background: radial-gradient(
+    circle,
+    rgba(255, 255, 255, 0.34),
+    transparent 60%
+  );
+  filter: blur(26px);
+  opacity: var(--glow);
+}
+
+.soft-gradient-grain,
+.soft-gradient-paper-fog {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+}
+
+.soft-gradient-grain {
+  opacity: var(--grain-opacity, 0.54);
+  mix-blend-mode: soft-light;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180' viewBox='0 0 180 180'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.82' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23noise)' opacity='.55'/%3E%3C/svg%3E");
+  background-size: calc(var(--grain-size, 1.6px) * 180)
+    calc(var(--grain-size, 1.6px) * 180);
+}
+
+.soft-gradient-paper-fog {
+  opacity: 0.48;
+  background:
+    radial-gradient(
+      circle at 15% 15%,
+      rgba(255, 255, 255, 0.78),
+      transparent 32%
+    ),
+    radial-gradient(
+      circle at 83% 20%,
+      rgba(255, 255, 255, 0.72),
+      transparent 34%
+    ),
+    radial-gradient(
+      circle at 50% 94%,
+      rgba(255, 255, 255, 0.58),
+      transparent 30%
+    );
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .soft-gradient-blob {
+    transition: none;
+  }
+
+  .soft-gradient-blob-entrance {
+    animation: none;
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+
+  .soft-gradient-blob-field {
+    transition: none;
+  }
+
+  .gut-reaction-content-enter {
+    animation: none;
     opacity: 1;
   }
+
+  .gut-reaction-settle-in {
+    animation: none;
+    opacity: 1;
+  }
+
+  .gut-countdown-digit-track {
+    transition: none;
+  }
+}
+
+/* Gut reaction — odometer-style countdown digits */
+.gut-countdown {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.gut-countdown-digit {
+  display: inline-block;
+  height: 1em;
+  overflow: hidden;
+}
+
+.gut-countdown-digit-track {
+  display: flex;
+  flex-direction: column;
+  transition: transform var(--gut-countdown-ticker-duration)
+    var(--gut-countdown-ticker-ease);
+  will-change: transform;
+}
+
+.gut-countdown-digit-cell {
+  display: flex;
+  height: 1em;
+  align-items: center;
+  justify-content: center;
+  min-width: 0.62em;
 }
 
 @keyframes fadeInUp {
