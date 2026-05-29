@@ -95,6 +95,9 @@ export function useSession(): Ctx {
 }
 
 function loadInitial(): SessionState {
+  if (window.location.search.includes("skip=close-reading")) {
+    return createSkipToCloseReadingSession();
+  }
   return readStored<SessionState>(SESSION_STORAGE_KEY, createSeedSession());
 }
 

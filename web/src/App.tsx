@@ -6,8 +6,15 @@ import { TeacherDashboard } from "./screens/TeacherDashboard";
 
 export type AppMode = "landing" | "student" | "teacher";
 
+function getInitialMode(): AppMode {
+  if (window.location.search.includes("skip=close-reading")) {
+    return "student";
+  }
+  return "landing";
+}
+
 export function App() {
-  const [mode, setMode] = useState<AppMode>("landing");
+  const [mode, setMode] = useState<AppMode>(getInitialMode);
 
   return (
     <SessionProvider>

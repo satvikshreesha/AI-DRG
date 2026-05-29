@@ -266,6 +266,7 @@ export function CloseReading() {
   const [draft, setDraft] = useState<DraftState | null>(null);
   const [editingHighlightId, setEditingHighlightId] = useState<string | null>(null);
   const [cardTops, setCardTops] = useState<Record<string, number>>({});
+  const [timelineResetSignal, setTimelineResetSignal] = useState(0);
   const articleRef = useRef<HTMLElement | null>(null);
   const documentRef = useRef<HTMLDivElement | null>(null);
 
@@ -421,6 +422,17 @@ export function CloseReading() {
 
   return (
     <div
+      onClick={(event) => {
+        const target = event.target as HTMLElement;
+        if (
+          target.closest(
+            "[data-close-reading-document], [data-story-timeline], [data-annotation-card]"
+          )
+        ) {
+          return;
+        }
+        setTimelineResetSignal((signal) => signal + 1);
+      }}
       style={{
         position: "relative",
         height: "100%",
@@ -428,7 +440,7 @@ export function CloseReading() {
         overflowY: "auto",
       }}
     >
-      <StoryTimeline events={EVENTS} />
+      <StoryTimeline key={timelineResetSignal} events={EVENTS} />
 
       <main
         style={{
@@ -450,6 +462,7 @@ export function CloseReading() {
           }}
         >
           <div
+            data-close-reading-document
             ref={documentRef}
             style={{
               width: DOC_WIDTH,
