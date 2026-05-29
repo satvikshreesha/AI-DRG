@@ -15,10 +15,6 @@ type Props = {
 export function StudentSession({ onExit }: Props) {
   const { state } = useSession();
 
-  if (!state.gutReactionComplete) {
-    return <GutReaction />;
-  }
-
   return (
     <div
       style={{
@@ -39,12 +35,20 @@ export function StudentSession({ onExit }: Props) {
           overflow: "hidden",
         }}
       >
-        {state.tabs.activeTab === "close-reading" && <CloseReading />}
-        {state.tabs.activeTab === "interpretation" && <InterpretationCanvas />}
-        {state.tabs.activeTab === "thesis" && <ThesisFormation />}
-        {state.tabs.activeTab === "structure" && <EssayStructure />}
-        {state.tabs.activeTab === "writing" && <EssayWriting />}
-        <StancePill />
+        {!state.gutReactionComplete ? (
+          <GutReaction />
+        ) : (
+          <>
+            {state.tabs.activeTab === "close-reading" && <CloseReading />}
+            {state.tabs.activeTab === "interpretation" && (
+              <InterpretationCanvas />
+            )}
+            {state.tabs.activeTab === "thesis" && <ThesisFormation />}
+            {state.tabs.activeTab === "structure" && <EssayStructure />}
+            {state.tabs.activeTab === "writing" && <EssayWriting />}
+            <StancePill />
+          </>
+        )}
       </main>
     </div>
   );

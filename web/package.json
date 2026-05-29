@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite --host 127.0.0.1 --port 5200 --strictPort --force",
     "dev:clean": "rm -rf node_modules/.vite && npm run dev",
+    "sync-fonts": "node scripts/sync-gt-alpina-fonts.mjs",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview"

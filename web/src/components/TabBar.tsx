@@ -98,7 +98,7 @@ export function TabBar({ onExit }: Props) {
         display: "flex",
         alignItems: "flex-end",
         padding: "0 12px",
-        background: "var(--color-parchment)",
+        background: "var(--color-parchment-elevated)",
         borderBottom: "1px solid var(--color-hairline)",
         position: "relative",
         zIndex: 50,
@@ -126,7 +126,42 @@ export function TabBar({ onExit }: Props) {
           overflowY: "visible",
         }}
       >
-        {state.tabs.openTabs.map((tab) => {
+        {!state.gutReactionComplete ? (
+          <div
+            style={{
+              position: "relative",
+              padding: "8px 14px 8px 12px",
+              fontSize: "var(--text-body-sm)",
+              color: "var(--color-inkwell)",
+              background: "var(--color-paper-white)",
+              borderTopLeftRadius: 10,
+              borderTopRightRadius: 10,
+              borderLeft: "1px solid var(--color-hairline)",
+              borderTop: "1px solid var(--color-hairline)",
+              borderRight: "1px solid var(--color-hairline)",
+              borderBottom: "1px solid var(--color-paper-white)",
+              marginBottom: -1,
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+              whiteSpace: "nowrap",
+              minWidth: 140,
+              maxWidth: 200,
+            }}
+          >
+            <span style={{ opacity: 0.7, fontSize: 11 }}>💭</span>
+            <span
+              style={{
+                flex: 1,
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+              }}
+            >
+              Gut Reaction
+            </span>
+          </div>
+        ) : (
+          state.tabs.openTabs.map((tab) => {
           const isActive = tab === state.tabs.activeTab;
           const meta = TAB_META[tab];
           const canClose = state.tabs.openTabs.length > 1;
@@ -202,9 +237,10 @@ export function TabBar({ onExit }: Props) {
               )}
             </div>
           );
-        })}
+        })
+        )}
 
-        {openableTabs.length > 0 && (
+        {state.gutReactionComplete && openableTabs.length > 0 && (
           <div
             style={{
               position: "relative",

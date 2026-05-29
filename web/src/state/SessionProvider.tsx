@@ -167,10 +167,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       ...s,
       gutReactionComplete: true,
       tabs: {
-        ...s.tabs,
-        openTabs: s.tabs.openTabs.includes("close-reading")
-          ? s.tabs.openTabs
-          : [...s.tabs.openTabs, "close-reading"],
+        openTabs: ["close-reading"],
         activeTab: "close-reading",
       },
     }));

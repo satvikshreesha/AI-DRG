@@ -93,7 +93,7 @@ export function EssayWriting() {
               padding: 24,
               background: "var(--color-paper-white)",
               minHeight: 480,
-              fontFamily: "Georgia, 'Source Serif Pro', serif",
+              fontFamily: "var(--font-serif)",
             }}
           >
             <div
@@ -105,7 +105,7 @@ export function EssayWriting() {
                 fontSize: 17,
                 lineHeight: 1.75,
                 whiteSpace: "pre-wrap",
-                fontFamily: "Georgia, 'Source Serif Pro', serif",
+                fontFamily: "var(--font-serif)",
                 color: "transparent",
               }}
             >
@@ -124,7 +124,7 @@ export function EssayWriting() {
                 border: "none",
                 outline: "none",
                 resize: "vertical",
-                fontFamily: "Georgia, 'Source Serif Pro', serif",
+                fontFamily: "var(--font-serif)",
                 fontSize: 17,
                 lineHeight: 1.75,
                 color: "var(--color-inkwell)",
