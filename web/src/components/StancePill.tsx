@@ -1,176 +1,104 @@
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { useSession } from "../state/SessionProvider";
 
+type StancePillTab = "stance" | "prompt";
+
 /**
- * A small pill anchored to the top-right of the active tab content area that
- * reminds the student of the initial stance they committed to. It shows from
- * the moment they finish the Gut Reaction until they save a thesis.
+ * A tabbed card anchored to the top-right of the active tab content area that
+ * reminds the student of the prompt and initial stance they committed to. It
+ * shows from the moment they finish the Gut Reaction until they save a thesis.
  */
 export function StancePill() {
   const { state } = useSession();
-  const [expanded, setExpanded] = useState(false);
-  const wrapperRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!expanded) return;
-    const onDoc = (e: MouseEvent) => {
-      if (
-        wrapperRef.current &&
-        !wrapperRef.current.contains(e.target as Node)
-      ) {
-        setExpanded(false);
-      }
-    };
-    const t = window.setTimeout(() => {
-      document.addEventListener("mousedown", onDoc);
-    }, 0);
-    return () => {
-      window.clearTimeout(t);
-      document.removeEventListener("mousedown", onDoc);
-    };
-  }, [expanded]);
+  const [activeTab, setActiveTab] = useState<StancePillTab>("stance");
 
   if (!state.gutReactionComplete) return null;
   if (state.thesis.trim()) return null;
   if (!state.initialStance.trim()) return null;
 
-  const truncated =
-    state.initialStance.length > 70
-      ? `${state.initialStance.slice(0, 70).trim()}…`
-      : state.initialStance;
+  const tabLabelStyle = {
+    fontSize: 10,
+    letterSpacing: "0.12em",
+    textTransform: "uppercase" as const,
+    fontWeight: "var(--weight-medium)" as const,
+  };
 
   return (
     <div
-      ref={wrapperRef}
       style={{
         position: "absolute",
         top: 12,
         right: 16,
         zIndex: 40,
         pointerEvents: "auto",
+        width: 240,
+        maxWidth: 240,
       }}
     >
-      {!expanded ? (
-        <button
-          type="button"
-          onClick={() => setExpanded(true)}
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: 8,
-            maxWidth: 320,
-            padding: "6px 12px",
-            background: "var(--color-paper-white)",
-            border: "1px solid var(--color-hairline)",
-            borderRadius: "var(--radius-pill)",
-            fontSize: "var(--text-caption)",
-            color: "var(--color-graphite)",
-            cursor: "pointer",
-            boxShadow: "var(--shadow-soft)",
-          }}
-          title="Click to see your full initial stance"
-        >
-          <span
-            style={{
-              fontSize: 9,
-              letterSpacing: "0.12em",
-              textTransform: "uppercase",
-              color: "var(--color-faded-stone)",
-              whiteSpace: "nowrap",
-            }}
-          >
-            Your stance
-          </span>
-          <span
-            style={{
-              width: 1,
-              height: 12,
-              background: "var(--color-hairline)",
-              display: "inline-block",
-            }}
-          />
-          <span
-            style={{
-              maxWidth: 220,
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-              whiteSpace: "nowrap",
-              color: "var(--color-dusk-gray)",
-              fontStyle: "italic",
-            }}
-          >
-            {truncated}
-          </span>
-        </button>
-      ) : (
+      <div
+        style={{
+          background: "var(--color-paper-white)",
+          border: "1px solid var(--color-hairline)",
+          borderRadius: 12,
+          boxShadow: "var(--shadow-card)",
+          overflow: "hidden",
+        }}
+      >
         <div
           style={{
-            width: 360,
-            maxWidth: "calc(100vw - 32px)",
-            background: "var(--color-paper-white)",
-            border: "1px solid var(--color-hairline)",
-            borderRadius: 12,
-            padding: 14,
-            boxShadow: "var(--shadow-card)",
-            animation: "fadeInUp 160ms ease-out",
+            display: "flex",
+            borderBottom: "1px solid var(--color-hairline)",
           }}
         >
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              marginBottom: 6,
-            }}
-          >
-            <span
-              style={{
-                fontSize: 10,
-                letterSpacing: "0.12em",
-                textTransform: "uppercase",
-                color: "var(--color-faded-stone)",
-              }}
-            >
-              Your initial stance
-            </span>
-            <button
-              type="button"
-              onClick={() => setExpanded(false)}
-              aria-label="Collapse"
-              style={{
-                background: "transparent",
-                border: "none",
-                color: "var(--color-faded-stone)",
-                cursor: "pointer",
-                fontSize: 13,
-                lineHeight: 1,
-                padding: 0,
-              }}
-            >
-              ×
-            </button>
-          </div>
-          <div
-            style={{
-              fontSize: "var(--text-body-sm)",
-              color: "var(--color-graphite)",
-              lineHeight: 1.55,
-              fontStyle: "italic",
-            }}
-          >
-            “{state.initialStance}”
-          </div>
-          <div
-            style={{
-              marginTop: 8,
-              fontSize: "var(--text-caption)",
-              color: "var(--color-faded-stone)",
-            }}
-          >
-            This reminder hides once you save a thesis.
-          </div>
+          {(
+            [
+              { id: "stance" as const, label: "Your stance" },
+              { id: "prompt" as const, label: "Prompt" },
+            ] as const
+          ).map((tab, index) => {
+            const isActive = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                type="button"
+                onClick={() => setActiveTab(tab.id)}
+                style={{
+                  flex: 1,
+                  padding: "10px 14px",
+                  background: isActive
+                    ? "var(--color-paper-white)"
+                    : "var(--color-parchment-elevated)",
+                  border: "none",
+                  borderTop: "1px solid var(--color-hairline)",
+                  borderRight:
+                    index === 0 ? "1px solid var(--color-hairline)" : "none",
+                  borderBottom: isActive
+                    ? "1px solid var(--color-paper-white)"
+                    : "1px solid var(--color-hairline)",
+                  marginBottom: isActive ? -1 : 0,
+                  cursor: "pointer",
+                  ...tabLabelStyle,
+                  color: isActive
+                    ? "var(--color-graphite)"
+                    : "var(--color-faded-stone)",
+                }}
+              >
+                {tab.label}
+              </button>
+            );
+          })}
         </div>
-      )}
+        <div
+          style={{
+            padding: "14px 16px",
+            fontSize: "var(--text-body-sm)",
+            color: "var(--color-graphite)",
+            lineHeight: 1.55,
+          }}
+        >
+          {activeTab === "stance" ? state.initialStance : state.prompt}
+        </div>
+      </div>
     </div>
   );
 }

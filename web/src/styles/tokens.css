@@ -4,11 +4,11 @@
  */
 :root {
   /* Colors */
-  --color-inkwell: #101010;
+  --color-inkwell: #1f1f1f;
   --color-paper-white: #ffffff;
-  --color-parchment: #f5f7fa;
-  --color-parchment-elevated: #eceef4;
-  --color-graphite: #27251e;
+  --color-parchment: #FAFBFC;
+  --color-parchment-elevated: #eff3f5;
+  --color-graphite: #1e2227;
   --color-faded-stone: #8b8c92;
   --color-dusk-gray: #6b6c72;
   --color-hairline: #dfe2e8;
@@ -16,8 +16,9 @@
 
   /* Accent (used sparingly — selections, connections) */
   --color-accent-teal: #5fb6b8;
-  --color-accent-teal-soft: rgba(95, 182, 184, 0.18);
+  --color-accent-teal-soft: rgba(95, 135, 184, 0.18);
   --color-accent-teal-border: rgba(95, 182, 184, 0.55);
+  --color-accent-countdown: rgba(83, 91, 138, 0.1);
 
   /* Annotation card status */
   --color-status-green: #76b88a;
@@ -37,7 +38,7 @@
   --font-serif: "GT Alpina", Georgia, "Times New Roman", serif;
 
   --text-caption: 12px;
-  --text-body-sm: 14px;
+  --text-body-sm: 12px;
   --text-body: 16px;
   --text-h2: 22px;
   --text-h1: 30px;

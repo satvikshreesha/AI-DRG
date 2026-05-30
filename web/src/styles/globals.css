@@ -48,15 +48,31 @@ a {
   background: var(--color-accent-teal-soft);
 }
 
-/* Gut reaction — content entrance (prompt, explanation, countdown) */
+/* Gut reaction — mount entrance sequence */
 :root {
-  --gut-content-fade-duration: 600ms;
-  --gut-content-fade-delay: 200ms;
   --gut-content-fade-ease: ease-out;
 
-  /* Gradient blob entrance — mirrors content timing initially, tunable separately */
+  /* Prompt: fade in at center → pause → slide to final position */
+  --gut-prompt-fade-delay: 200ms;
+  --gut-prompt-fade-duration: 600ms;
+  --gut-prompt-pause-duration: 1000ms;
+  --gut-prompt-slide-duration: 700ms;
+  --gut-prompt-slide-ease: cubic-bezier(0.25, 0.1, 0.4, 1);
+  --gut-prompt-top-offset: 160px;
+
+  /* Explanation + countdown — after prompt settles */
+  --gut-secondary-fade-duration: 600ms;
+  --gut-secondary-fade-delay: calc(
+    var(--gut-prompt-fade-delay) + var(--gut-prompt-fade-duration) +
+      var(--gut-prompt-pause-duration) + var(--gut-prompt-slide-duration)
+  );
+
+  /* Gradient blob entrance — after countdown appears */
+  --gut-blob-after-countdown-delay: 600ms;
   --gut-blob-fade-duration: 1200ms;
-  --gut-blob-fade-delay: 600ms;
+  --gut-blob-fade-delay: calc(
+    var(--gut-secondary-fade-delay) + var(--gut-blob-after-countdown-delay)
+  );
   --gut-blob-fade-stagger: 600ms;
   --gut-blob-fade-ease: ease-out;
   --gut-blob-intro-scale-from: 0.5;
@@ -69,10 +85,33 @@ a {
   --gut-countdown-ticker-ease: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.gut-reaction-content-enter {
+.gut-prompt-enter {
   opacity: 0;
-  animation: fadeIn var(--gut-content-fade-duration) var(--gut-content-fade-ease)
-    var(--gut-content-fade-delay) both;
+  transform: translateY(calc(50vh - var(--gut-prompt-top-offset) - 50%));
+  animation:
+    fadeIn var(--gut-prompt-fade-duration) var(--gut-content-fade-ease)
+      var(--gut-prompt-fade-delay) both,
+    gutPromptSlide var(--gut-prompt-slide-duration) var(--gut-prompt-slide-ease)
+      calc(
+        var(--gut-prompt-fade-delay) + var(--gut-prompt-fade-duration) +
+          var(--gut-prompt-pause-duration)
+      )
+      forwards;
+}
+
+.gut-reaction-secondary-enter {
+  opacity: 0;
+  animation: fadeIn var(--gut-secondary-fade-duration) var(--gut-content-fade-ease) 0ms
+    both;
+}
+
+@keyframes gutPromptSlide {
+  from {
+    transform: translateY(calc(50vh - var(--gut-prompt-top-offset) - 50%));
+  }
+  to {
+    transform: translateY(0);
+  }
 }
 
 .gut-reaction-settle-in {
@@ -225,7 +264,13 @@ a {
     transition: none;
   }
 
-  .gut-reaction-content-enter {
+  .gut-prompt-enter {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+
+  .gut-reaction-secondary-enter {
     animation: none;
     opacity: 1;
   }
