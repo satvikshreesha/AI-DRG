@@ -249,7 +249,7 @@ function CalmPulse({ elapsed }: { elapsed: number }) {
       aria-atomic="true"
       aria-label={label}
       style={{
-        fontSize: 96,
+        fontSize: 22,
         fontWeight: "var(--weight-bold)",
         color: "var(--color-accent-countdown)",
         letterSpacing: "-0.02em",
