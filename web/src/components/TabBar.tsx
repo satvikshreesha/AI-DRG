@@ -1,9 +1,8 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { useSession } from "../state/SessionProvider";
 import type { TabKey } from "../state/types";
 import { Logo } from "./Logo";
-import { aiMode } from "../lib/ai";
 
 const TAB_META: Record<TabKey, { label: string; icon: string; hint?: string }> =
   {
@@ -42,20 +41,45 @@ const TAB_ORDER: TabKey[] = [
   "writing",
 ];
 
+const WRITING_LOCKED_HINT =
+  "Essay Writing isn't available until you've written your Essay Structure.";
+
+/* ── Inactive tab appearance ───────────────────────────────
+ * Two distinct visual languages so the states read at a glance:
+ *
+ *   OPENABLE  dashed gray border · 50% opacity fill · circular "+" badge
+ *             → "available, click to add"
+ *   LOCKED    solid muted border · flat gray fill · "Locked" pill
+ *             → "blocked, not clickable yet"
+ * ─────────────────────────────────────────────────────────── */
+const INACTIVE_TAB = {
+  openable: {
+    border: "1px dashed var(--color-hairline)",
+    borderHover: "1px dashed var(--color-hairline)",
+    background: "var(--color-paper-white)",
+    backgroundHover: "var(--color-parchment)",
+    opacity: 0.6,
+    opacityHover: 1,
+    label: "var(--color-dusk-gray)",
+    iconOpacity: 0.75,
+  },
+  locked: {
+    border: "1px solid var(--color-hairline-soft)",
+    background: "var(--color-parchment-elevated)",
+    label: "var(--color-faded-stone)",
+    iconOpacity: 0.4,
+  },
+} as const;
+
+export const TAB_BAR_HEIGHT = 44;
+
 type Props = {
   onExit: () => void;
 };
 
 export function TabBar({ onExit }: Props) {
-  const {
-    state,
-    openTab,
-    closeTab,
-    setActiveTab,
-    resetSession,
-    skipToCloseReading,
-  } = useSession();
-  const [menuOpen, setMenuOpen] = useState(false);
+  const { state, openTab, closeTab, setActiveTab, resetSession, skipToCloseReading } =
+    useSession();
   const [confirmReset, setConfirmReset] = useState(false);
 
   const structureHasContent = state.essaySections.some(
@@ -63,44 +87,19 @@ export function TabBar({ onExit }: Props) {
   );
   const isWritingLocked = !structureHasContent;
 
-  const openableTabs: TabKey[] = TAB_ORDER.filter(
-    (t) => !state.tabs.openTabs.includes(t)
-  );
-
-  const plusButtonRef = useRef<HTMLButtonElement | null>(null);
-  const [menuPos, setMenuPos] = useState<{ left: number; top: number }>({
-    left: 0,
-    top: 0,
-  });
-
-  // When the menu opens, anchor it to the "+" button using viewport coordinates
-  // so it can escape the tab strip's overflow:auto container.
-  useEffect(() => {
-    if (!menuOpen) return;
-    const update = () => {
-      const r = plusButtonRef.current?.getBoundingClientRect();
-      if (!r) return;
-      setMenuPos({ left: r.left, top: r.bottom + 4 });
-    };
-    update();
-    window.addEventListener("resize", update);
-    window.addEventListener("scroll", update, true);
-    return () => {
-      window.removeEventListener("resize", update);
-      window.removeEventListener("scroll", update, true);
-    };
-  }, [menuOpen]);
-
   return (
     <div
       style={{
-        height: 44,
+        position: "fixed",
+        top: 0,
+        left: 0,
+        right: 0,
+        height: TAB_BAR_HEIGHT,
         display: "flex",
         alignItems: "flex-end",
         padding: "0 12px",
         background: "var(--color-parchment-elevated)",
         borderBottom: "1px solid var(--color-hairline)",
-        position: "relative",
         zIndex: 50,
       }}
     >
@@ -119,169 +118,39 @@ export function TabBar({ onExit }: Props) {
       <div
         style={{
           flex: 1,
+          minWidth: 0,
           display: "flex",
           alignItems: "flex-end",
           gap: 2,
-          overflowX: "auto",
-          overflowY: "visible",
+          overflow: "hidden",
         }}
       >
         {!state.gutReactionComplete ? (
-          <div
-            style={{
-              position: "relative",
-              padding: "8px 14px 8px 12px",
-              fontSize: "var(--text-body-sm)",
-              color: "var(--color-inkwell)",
-              background: "var(--color-paper-white)",
-              borderTopLeftRadius: 10,
-              borderTopRightRadius: 10,
-              borderLeft: "1px solid var(--color-hairline)",
-              borderTop: "1px solid var(--color-hairline)",
-              borderRight: "1px solid var(--color-hairline)",
-              borderBottom: "1px solid var(--color-paper-white)",
-              marginBottom: -1,
-              display: "flex",
-              alignItems: "center",
-              gap: 8,
-              whiteSpace: "nowrap",
-              minWidth: 140,
-              maxWidth: 200,
-            }}
-          >
-            <span style={{ opacity: 0.7, fontSize: 11 }}>💭</span>
-            <span
-              style={{
-                flex: 1,
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-              }}
-            >
-              Gut Reaction
-            </span>
-          </div>
+          <GutReactionTab />
         ) : (
-          state.tabs.openTabs.map((tab) => {
-          const isActive = tab === state.tabs.activeTab;
-          const meta = TAB_META[tab];
-          const canClose = state.tabs.openTabs.length > 1;
-          return (
-            <div
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              style={{
-                position: "relative",
-                padding: "8px 14px 8px 12px",
-                fontSize: "var(--text-body-sm)",
-                color: isActive
-                  ? "var(--color-inkwell)"
-                  : "var(--color-dusk-gray)",
-                background: isActive
-                  ? "var(--color-paper-white)"
-                  : "transparent",
-                borderTopLeftRadius: 10,
-                borderTopRightRadius: 10,
-                borderLeft: isActive
-                  ? "1px solid var(--color-hairline)"
-                  : "1px solid transparent",
-                borderTop: isActive
-                  ? "1px solid var(--color-hairline)"
-                  : "1px solid transparent",
-                borderRight: isActive
-                  ? "1px solid var(--color-hairline)"
-                  : "1px solid transparent",
-                borderBottom: isActive
-                  ? "1px solid var(--color-paper-white)"
-                  : "1px solid transparent",
-                marginBottom: -1,
-                cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
-                gap: 8,
-                whiteSpace: "nowrap",
-                minWidth: 140,
-                maxWidth: 200,
-                transition: "background var(--transition-fast)",
-              }}
-            >
-              <span style={{ opacity: 0.7, fontSize: 11 }}>{meta.icon}</span>
-              <span
-                style={{
-                  flex: 1,
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                }}
-              >
-                {meta.label}
-              </span>
-              {canClose && (
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    closeTab(tab);
-                  }}
-                  aria-label={`Close ${meta.label}`}
-                  style={{
-                    background: "transparent",
-                    border: "none",
-                    color: "var(--color-faded-stone)",
-                    cursor: "pointer",
-                    fontSize: 14,
-                    lineHeight: 1,
-                    padding: 0,
-                  }}
-                >
-                  ×
-                </button>
-              )}
-            </div>
-          );
-        })
-        )}
-
-        {state.gutReactionComplete && openableTabs.length > 0 && (
-          <div
-            style={{
-              position: "relative",
-              marginBottom: 6,
-              marginLeft: 6,
-              flexShrink: 0,
-            }}
-          >
-            <button
-              ref={plusButtonRef}
-              type="button"
-              aria-label="Open new tab"
-              aria-haspopup="menu"
-              aria-expanded={menuOpen}
-              onClick={(e) => {
-                e.stopPropagation();
-                setMenuOpen((m) => !m);
-              }}
-              style={{
-                background: menuOpen
-                  ? "var(--color-paper-white)"
-                  : "transparent",
-                border: menuOpen
-                  ? "1px solid var(--color-hairline)"
-                  : "1px solid transparent",
-                color: "var(--color-dusk-gray)",
-                fontSize: 18,
-                lineHeight: 1,
-                cursor: "pointer",
-                padding: "5px 10px",
-                borderRadius: 6,
-                width: 32,
-                height: 30,
-                display: "inline-flex",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              +
-            </button>
-          </div>
+          TAB_ORDER.map((tab) => {
+            const isOpen = state.tabs.openTabs.includes(tab);
+            if (isOpen) {
+              return (
+                <OpenTab
+                  key={tab}
+                  tab={tab}
+                  isActive={tab === state.tabs.activeTab}
+                  canClose={state.tabs.openTabs.length > 1}
+                  onSelect={() => setActiveTab(tab)}
+                  onClose={() => closeTab(tab)}
+                />
+              );
+            }
+            return (
+              <ClosedTab
+                key={tab}
+                tab={tab}
+                locked={tab === "writing" && isWritingLocked}
+                onOpen={() => openTab(tab)}
+              />
+            );
+          })
         )}
       </div>
 
@@ -294,45 +163,6 @@ export function TabBar({ onExit }: Props) {
           marginLeft: 16,
         }}
       >
-        <span
-          title={
-            aiMode === "live"
-              ? "Connected to live OpenAI API"
-              : "Using scripted demo responses (set VITE_OPENAI_API_KEY for live AI)"
-          }
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: 5,
-            padding: "3px 9px",
-            borderRadius: "var(--radius-pill)",
-            background:
-              aiMode === "live"
-                ? "var(--color-paper-white)"
-                : "var(--color-parchment)",
-            border: "1px solid var(--color-hairline)",
-            fontSize: 10,
-            letterSpacing: "0.08em",
-            textTransform: "uppercase",
-            color:
-              aiMode === "live"
-                ? "var(--color-graphite)"
-                : "var(--color-faded-stone)",
-          }}
-        >
-          <span
-            style={{
-              width: 5,
-              height: 5,
-              borderRadius: 999,
-              background:
-                aiMode === "live"
-                  ? "var(--color-status-green)"
-                  : "var(--color-faded-stone)",
-            }}
-          />
-          AI {aiMode}
-        </span>
         <button
           type="button"
           onClick={() => setConfirmReset(true)}
@@ -365,22 +195,6 @@ export function TabBar({ onExit }: Props) {
         </button>
       </div>
 
-      {menuOpen &&
-        openableTabs.length > 0 &&
-        createPortal(
-          <NewTabMenu
-            anchor={menuPos}
-            openableTabs={openableTabs}
-            isWritingLocked={isWritingLocked}
-            onPick={(tab) => {
-              openTab(tab);
-              setMenuOpen(false);
-            }}
-            onClose={() => setMenuOpen(false)}
-          />,
-          document.body
-        )}
-
       {confirmReset && (
         <ConfirmResetModal
           onCancel={() => setConfirmReset(false)}
@@ -398,157 +212,380 @@ export function TabBar({ onExit }: Props) {
   );
 }
 
-function NewTabMenu({
-  anchor,
-  openableTabs,
-  isWritingLocked,
-  onPick,
-  onClose,
-}: {
-  anchor: { left: number; top: number };
-  openableTabs: TabKey[];
-  isWritingLocked: boolean;
-  onPick: (tab: TabKey) => void;
-  onClose: () => void;
-}) {
-  const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const onDoc = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) {
-        onClose();
-      }
-    };
-    const onEsc = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-    };
-    // Defer so the click that opened the menu doesn't immediately close it.
-    const t = window.setTimeout(() => {
-      document.addEventListener("mousedown", onDoc);
-    }, 0);
-    document.addEventListener("keydown", onEsc);
-    return () => {
-      window.clearTimeout(t);
-      document.removeEventListener("mousedown", onDoc);
-      document.removeEventListener("keydown", onEsc);
-    };
-  }, [onClose]);
-
+function GutReactionTab() {
   return (
     <div
-      ref={ref}
-      role="menu"
+      style={{
+        position: "relative",
+        padding: "8px 14px 8px 12px",
+        fontSize: "var(--text-body-sm)",
+        color: "var(--color-inkwell)",
+        background: "var(--color-paper-white)",
+        borderTopLeftRadius: 10,
+        borderTopRightRadius: 10,
+        borderLeft: "1px solid var(--color-hairline)",
+        borderTop: "1px solid var(--color-hairline)",
+        borderRight: "1px solid var(--color-hairline)",
+        borderBottom: "1px solid var(--color-paper-white)",
+        marginBottom: -1,
+        display: "flex",
+        alignItems: "center",
+        gap: 8,
+        whiteSpace: "nowrap",
+        minWidth: 140,
+        maxWidth: 200,
+      }}
+    >
+      <span style={{ opacity: 0.7, fontSize: 11 }}>💭</span>
+      <span style={{ flex: 1, overflow: "hidden", textOverflow: "ellipsis" }}>
+        Gut Reaction
+      </span>
+    </div>
+  );
+}
+
+function OpenTab({
+  tab,
+  isActive,
+  canClose,
+  onSelect,
+  onClose,
+}: {
+  tab: TabKey;
+  isActive: boolean;
+  canClose: boolean;
+  onSelect: () => void;
+  onClose: () => void;
+}) {
+  const meta = TAB_META[tab];
+  return (
+    <TabHoverShell hint={meta.hint}>
+      <div
+        onClick={onSelect}
+        style={{
+          position: "relative",
+          padding: "8px 14px 8px 12px",
+          fontSize: "var(--text-body-sm)",
+          color: isActive ? "var(--color-inkwell)" : "var(--color-dusk-gray)",
+          background: isActive ? "var(--color-paper-white)" : "transparent",
+          borderTopLeftRadius: 10,
+          borderTopRightRadius: 10,
+          borderLeft: isActive
+            ? "1px solid var(--color-hairline)"
+            : "1px solid transparent",
+          borderTop: isActive
+            ? "1px solid var(--color-hairline)"
+            : "1px solid transparent",
+          borderRight: isActive
+            ? "1px solid var(--color-hairline)"
+            : "1px solid transparent",
+          borderBottom: isActive
+            ? "1px solid var(--color-paper-white)"
+            : "1px solid transparent",
+          marginBottom: -1,
+          cursor: "pointer",
+          display: "flex",
+          alignItems: "center",
+          gap: 8,
+          whiteSpace: "nowrap",
+          minWidth: 140,
+          maxWidth: 200,
+          transition: "background var(--transition-fast)",
+        }}
+      >
+        <span style={{ opacity: 0.7, fontSize: 11 }}>{meta.icon}</span>
+        <span style={{ flex: 1, overflow: "hidden", textOverflow: "ellipsis" }}>
+          {meta.label}
+        </span>
+        {canClose && (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onClose();
+            }}
+            aria-label={`Close ${meta.label}`}
+            style={{
+              background: "transparent",
+              border: "none",
+              color: "var(--color-faded-stone)",
+              cursor: "pointer",
+              fontSize: 14,
+              lineHeight: 1,
+              padding: 0,
+            }}
+          >
+            ×
+          </button>
+        )}
+      </div>
+    </TabHoverShell>
+  );
+}
+
+function ClosedTab({
+  tab,
+  locked,
+  onOpen,
+}: {
+  tab: TabKey;
+  locked: boolean;
+  onOpen: () => void;
+}) {
+  const meta = TAB_META[tab];
+  const [hovered, setHovered] = useState(false);
+
+  if (locked) {
+    const appearance = INACTIVE_TAB.locked;
+    const hint = meta.hint
+      ? `${meta.hint}. ${WRITING_LOCKED_HINT}`
+      : WRITING_LOCKED_HINT;
+    return (
+      <TabHoverShell hint={hint}>
+        <div
+          aria-disabled
+          aria-label={`${meta.label} — locked`}
+          style={{
+            position: "relative",
+            padding: "8px 12px",
+            fontSize: "var(--text-body-sm)",
+            color: appearance.label,
+            background: appearance.background,
+            borderTopLeftRadius: 10,
+            borderTopRightRadius: 10,
+            border: appearance.border,
+            marginBottom: -1,
+            cursor: "not-allowed",
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+            whiteSpace: "nowrap",
+            minWidth: 140,
+            maxWidth: 210,
+          }}
+        >
+          <span style={{ opacity: appearance.iconOpacity, fontSize: 11 }}>
+            {meta.icon}
+          </span>
+          <span style={{ flex: 1, overflow: "hidden", textOverflow: "ellipsis" }}>
+            {meta.label}
+          </span>
+          <LockedBadge />
+        </div>
+      </TabHoverShell>
+    );
+  }
+
+  const appearance = INACTIVE_TAB.openable;
+  return (
+    <TabHoverShell hint={meta.hint}>
+      <div
+        role="button"
+        tabIndex={0}
+        aria-label={`Open ${meta.label}`}
+        onClick={onOpen}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            onOpen();
+          }
+        }}
+        onMouseEnter={() => setHovered(true)}
+        onMouseLeave={() => setHovered(false)}
+        style={{
+          position: "relative",
+          padding: "8px 12px",
+          fontSize: "var(--text-body-sm)",
+          color: appearance.label,
+          background: hovered ? appearance.backgroundHover : appearance.background,
+          borderTopLeftRadius: 10,
+          borderTopRightRadius: 10,
+          border: hovered ? appearance.borderHover : appearance.border,
+          marginBottom: -1,
+          cursor: "pointer",
+          display: "flex",
+          alignItems: "center",
+          gap: 8,
+          whiteSpace: "nowrap",
+          minWidth: 140,
+          maxWidth: 210,
+          opacity: hovered ? appearance.opacityHover : appearance.opacity,
+          transition:
+            "background var(--transition-fast), border-color var(--transition-fast), opacity var(--transition-fast)",
+        }}
+      >
+        <span style={{ opacity: appearance.iconOpacity, fontSize: 11 }}>
+          {meta.icon}
+        </span>
+        <span style={{ flex: 1, overflow: "hidden", textOverflow: "ellipsis" }}>
+          {meta.label}
+        </span>
+        <PlusBadge />
+      </div>
+    </TabHoverShell>
+  );
+}
+
+function PlusBadge() {
+  return (
+    <span
+      aria-hidden
+      style={{
+        width: 18,
+        height: 18,
+        borderRadius: "var(--radius-pill)",
+        background: "var(--color-parchment)",
+        color: "var(--color-dusk-gray)",
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
+        fontSize: 16,
+        lineHeight: 1,
+        fontWeight: "var(--weight-medium)",
+        flexShrink: 0,
+        boxSizing: "border-box",
+      }}
+    >
+      +
+    </span>
+  );
+}
+
+function LockedBadge() {
+  return (
+    <span
+      aria-hidden
+      style={{
+        display: "inline-flex",
+        alignItems: "center",
+        gap: 3,
+        height: 18,
+        padding: "0 6px",
+        borderRadius: "var(--radius-pill)",
+        background: "var(--color-paper-white)",
+        border: "1px solid var(--color-hairline)",
+        fontSize: 9,
+        lineHeight: 1,
+        letterSpacing: "0.06em",
+        textTransform: "uppercase",
+        color: "var(--color-faded-stone)",
+        flexShrink: 0,
+        boxSizing: "border-box",
+      }}
+    >
+      <LockIcon size={8} />
+      Locked
+    </span>
+  );
+}
+
+function TabHoverShell({
+  hint,
+  children,
+}: {
+  hint?: string;
+  children: ReactNode;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [hovered, setHovered] = useState(false);
+  const [anchor, setAnchor] = useState({ left: 0, top: 0 });
+
+  useEffect(() => {
+    if (!hovered || !hint || !ref.current) return;
+    const update = () => {
+      const rect = ref.current?.getBoundingClientRect();
+      if (!rect) return;
+      setAnchor({ left: rect.left + rect.width / 2, top: rect.bottom + 8 });
+    };
+    update();
+    window.addEventListener("resize", update);
+    window.addEventListener("scroll", update, true);
+    return () => {
+      window.removeEventListener("resize", update);
+      window.removeEventListener("scroll", update, true);
+    };
+  }, [hovered, hint]);
+
+  return (
+    <>
+      <div
+        ref={ref}
+        style={{ position: "relative" }}
+        onMouseEnter={() => setHovered(true)}
+        onMouseLeave={() => setHovered(false)}
+      >
+        {children}
+      </div>
+      {hovered &&
+        hint &&
+        createPortal(
+          <TabTooltip text={hint} anchor={anchor} />,
+          document.body
+        )}
+    </>
+  );
+}
+
+function TabTooltip({
+  text,
+  anchor,
+}: {
+  text: string;
+  anchor: { left: number; top: number };
+}) {
+  return (
+    <div
+      role="tooltip"
       style={{
         position: "fixed",
         left: anchor.left,
         top: anchor.top,
-        minWidth: 280,
-        background: "var(--color-paper-white)",
-        border: "1px solid var(--color-hairline)",
-        borderRadius: 12,
+        transform: "translateX(-50%)",
+        width: "max-content",
+        maxWidth: 240,
+        padding: "8px 10px",
+        borderRadius: 8,
+        background: "var(--color-graphite)",
+        color: "var(--color-paper-white)",
+        fontSize: "var(--text-caption)",
+        lineHeight: 1.45,
+        textAlign: "center",
         boxShadow: "var(--shadow-card)",
-        overflow: "hidden",
         zIndex: 1000,
-        padding: 4,
-        animation: "fadeInUp 140ms ease-out",
+        pointerEvents: "none",
       }}
     >
-      <div
-        style={{
-          fontSize: "var(--text-caption)",
-          letterSpacing: "0.12em",
-          textTransform: "uppercase",
-          color: "var(--color-faded-stone)",
-          padding: "8px 10px 4px",
-        }}
-      >
-        Open a tab
-      </div>
-      {openableTabs.map((tab) => {
-        const meta = TAB_META[tab];
-        const locked = tab === "writing" && isWritingLocked;
-        return (
-          <button
-            key={tab}
-            type="button"
-            role="menuitem"
-            disabled={locked}
-            onClick={() => {
-              if (locked) return;
-              onPick(tab);
-            }}
-            title={
-              locked
-                ? "Add at least one block to Essay Structure to unlock Writing."
-                : ""
-            }
-            style={{
-              width: "100%",
-              background: "transparent",
-              border: "1px solid transparent",
-              padding: "8px 10px",
-              textAlign: "left",
-              fontSize: "var(--text-body-sm)",
-              color: locked
-                ? "var(--color-faded-stone)"
-                : "var(--color-inkwell)",
-              cursor: locked ? "not-allowed" : "pointer",
-              display: "flex",
-              alignItems: "center",
-              gap: 10,
-              borderRadius: 8,
-            }}
-            onMouseEnter={(e) => {
-              if (!locked) {
-                (e.currentTarget as HTMLButtonElement).style.background =
-                  "var(--color-parchment)";
-              }
-            }}
-            onMouseLeave={(e) => {
-              (e.currentTarget as HTMLButtonElement).style.background =
-                "transparent";
-            }}
-          >
-            <span
-              aria-hidden
-              style={{ fontSize: 13, opacity: 0.7, width: 16, textAlign: "center" }}
-            >
-              {meta.icon}
-            </span>
-            <span style={{ flex: 1, display: "flex", flexDirection: "column" }}>
-              <span style={{ fontWeight: "var(--weight-medium)" }}>
-                {meta.label}
-              </span>
-              {meta.hint && (
-                <span
-                  style={{
-                    fontSize: "var(--text-caption)",
-                    color: "var(--color-faded-stone)",
-                  }}
-                >
-                  {meta.hint}
-                </span>
-              )}
-            </span>
-            {locked && (
-              <span
-                style={{
-                  fontSize: 10,
-                  color: "var(--color-faded-stone)",
-                  border: "1px solid var(--color-hairline)",
-                  padding: "1px 6px",
-                  borderRadius: "var(--radius-pill)",
-                  textTransform: "uppercase",
-                  letterSpacing: "0.08em",
-                }}
-              >
-                locked
-              </span>
-            )}
-          </button>
-        );
-      })}
+      {text}
     </div>
+  );
+}
+
+function LockIcon({ size = 12 }: { size?: number }) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 12 12"
+      fill="none"
+      aria-hidden
+      style={{ color: "currentColor", flexShrink: 0 }}
+    >
+      <rect
+        x="2.25"
+        y="5.25"
+        width="7.5"
+        height="5"
+        rx="1"
+        stroke="currentColor"
+        strokeWidth="1.2"
+      />
+      <path
+        d="M4.25 5.25V3.75a1.75 1.75 0 113.5 0V5.25"
+        stroke="currentColor"
+        strokeWidth="1.2"
+        strokeLinecap="round"
+      />
+    </svg>
   );
 }
 

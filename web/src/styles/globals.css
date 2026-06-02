@@ -352,3 +352,69 @@ a {
     content: "Thinking...";
   }
 }
+
+/* Canvas summary expand / collapse (Thesis Formation) */
+.canvas-summary-collapse {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows var(--canvas-summary-collapse-duration, 280ms)
+    var(--canvas-summary-collapse-ease, cubic-bezier(0.2, 0, 0.2, 1));
+}
+
+.canvas-summary-collapse.is-expanded {
+  grid-template-rows: 1fr;
+}
+
+.canvas-summary-collapse__clip {
+  overflow: hidden;
+  min-height: 0;
+}
+
+.canvas-summary-collapse__content {
+  opacity: 0;
+  transform: translateY(calc(-1 * var(--canvas-summary-content-offset, 6px)));
+  transition:
+    opacity var(--canvas-summary-collapse-duration, 280ms)
+      var(--canvas-summary-collapse-ease, cubic-bezier(0.2, 0, 0.2, 1)),
+    transform var(--canvas-summary-collapse-duration, 280ms)
+      var(--canvas-summary-collapse-ease, cubic-bezier(0.2, 0, 0.2, 1));
+}
+
+.canvas-summary-collapse.is-expanded .canvas-summary-collapse__content {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.canvas-summary-header {
+  transition: margin-bottom var(--canvas-summary-collapse-duration, 280ms)
+    var(--canvas-summary-collapse-ease, cubic-bezier(0.2, 0, 0.2, 1));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .canvas-summary-collapse,
+  .canvas-summary-collapse__content,
+  .canvas-summary-header {
+    transition: none;
+  }
+
+  .canvas-summary-collapse.is-expanded .canvas-summary-collapse__content {
+    opacity: 1;
+    transform: none;
+  }
+
+  .thesis-critique-line {
+    opacity: 1;
+    transform: none;
+    animation: none;
+  }
+}
+
+/* Thesis critique — line-by-line reveal after thinking hold */
+.thesis-critique-line {
+  opacity: 0;
+  transform: translateY(6px);
+}
+
+.thesis-critique-line.is-visible {
+  animation: fadeInUp var(--critique-line-duration, 320ms) ease-out forwards;
+}

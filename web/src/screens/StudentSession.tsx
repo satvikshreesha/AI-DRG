@@ -1,5 +1,5 @@
 import { useSession } from "../state/SessionProvider";
-import { TabBar } from "../components/TabBar";
+import { TabBar, TAB_BAR_HEIGHT } from "../components/TabBar";
 import { StancePill } from "../components/StancePill";
 import { GutReaction } from "./GutReaction";
 import { CloseReading } from "../closeReading/CloseReading";
@@ -31,6 +31,7 @@ export function StudentSession({ onExit }: Props) {
           position: "relative",
           flex: 1,
           minHeight: 0,
+          paddingTop: TAB_BAR_HEIGHT,
           background: "var(--color-paper-white)",
           overflow: "hidden",
         }}
